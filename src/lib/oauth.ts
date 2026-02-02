@@ -3,14 +3,14 @@ import { getPreferenceValues, OAuth, showToast, Toast } from "@raycast/api";
 const TIMELY_AUTHORIZE_URL = "https://api.timelyapp.com/1.1/oauth/authorize";
 const TIMELY_TOKEN_URL = "https://api.timelyapp.com/1.1/oauth/token";
 
-export const timelyOAuthClient = new OAuth.PKCEClient({
+const oauthClient = new OAuth.PKCEClient({
   redirectMethod: OAuth.RedirectMethod.Web,
   providerName: "Timely",
   providerIcon: "extension-icon.png",
   description: "Connect your Timely account to list and create projects.",
 });
 
-export function getOAuthCredentials(): { clientId: string; clientSecret: string } {
+function getOAuthCredentials(): { clientId: string; clientSecret: string } {
   const prefs = getPreferenceValues<{ clientId: string; clientSecret: string }>();
   if (!prefs.clientId?.trim() || !prefs.clientSecret?.trim()) {
     throw new Error("Missing Client ID or Client Secret. Add them in Raycast Preferences.");
@@ -18,15 +18,11 @@ export function getOAuthCredentials(): { clientId: string; clientSecret: string 
   return { clientId: prefs.clientId.trim(), clientSecret: prefs.clientSecret.trim() };
 }
 
-export async function getStoredTokens(): Promise<OAuth.TokenSet | undefined> {
-  return timelyOAuthClient.getTokens();
-}
-
 export async function authorizeWithTimely(): Promise<string> {
   const { clientId } = getOAuthCredentials();
 
   // Create auth request - this gives us the redirect URI that Raycast expects
-  const authRequest = await timelyOAuthClient.authorizationRequest({
+  const authRequest = await oauthClient.authorizationRequest({
     endpoint: TIMELY_AUTHORIZE_URL,
     clientId,
     scope: "",
@@ -41,7 +37,7 @@ export async function authorizeWithTimely(): Promise<string> {
     "&state=" + encodeURIComponent(authRequest.state),
   ].join("");
 
-  const { authorizationCode } = await timelyOAuthClient.authorize({
+  const { authorizationCode } = await oauthClient.authorize({
     url: customUrl,
   });
 
@@ -74,7 +70,7 @@ export async function authorizeWithTimely(): Promise<string> {
     expires_in?: number;
   };
 
-  await timelyOAuthClient.setTokens({
+  await oauthClient.setTokens({
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
     expiresIn: data.expires_in,
@@ -86,7 +82,7 @@ export async function authorizeWithTimely(): Promise<string> {
 }
 
 export async function getAccessToken(): Promise<string> {
-  const tokens = await timelyOAuthClient.getTokens();
+  const tokens = await oauthClient.getTokens();
 
   if (tokens?.accessToken) {
     // If token is expired and we have a refresh token, try to refresh
@@ -133,7 +129,7 @@ async function refreshTokens(refreshToken: string): Promise<{ accessToken: strin
     expires_in?: number;
   };
 
-  await timelyOAuthClient.setTokens({
+  await oauthClient.setTokens({
     accessToken: data.access_token,
     refreshToken: data.refresh_token ?? refreshToken,
     expiresIn: data.expires_in,

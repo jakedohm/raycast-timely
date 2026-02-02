@@ -16,18 +16,21 @@ export default function Command() {
   useEffect(() => {
     if (timely.status !== "ready") return;
 
+    const { accessToken, accountId } = timely;
     let cancelled = false;
-    getClients(timely.accessToken, timely.accountId)
+
+    getClients(accessToken, accountId)
       .then((data) => {
         if (!cancelled) setClients(data);
       })
       .catch((e) => {
         if (!cancelled) setClientsError(e instanceof Error ? e.message : String(e));
       });
+
     return () => {
       cancelled = true;
     };
-  }, [timely.status, timely.accessToken, timely.accountId]);
+  }, [timely]);
 
   async function handleSubmit(values: FormValues) {
     if (timely.status !== "ready") return;

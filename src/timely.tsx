@@ -11,18 +11,21 @@ export default function Command() {
   useEffect(() => {
     if (timely.status !== "ready") return;
 
+    const { accessToken, accountId } = timely;
     let cancelled = false;
-    getProjects(timely.accessToken, timely.accountId)
+
+    getProjects(accessToken, accountId)
       .then((data) => {
         if (!cancelled) setProjects(data);
       })
       .catch((e) => {
         if (!cancelled) setProjectsError(e instanceof Error ? e.message : String(e));
       });
+
     return () => {
       cancelled = true;
     };
-  }, [timely.status, timely.accessToken, timely.accountId]);
+  }, [timely]);
 
   if (timely.status === "loading") {
     return <List isLoading />;
