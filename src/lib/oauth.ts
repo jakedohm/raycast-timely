@@ -11,7 +11,7 @@ const oauthClient = new OAuth.PKCEClient({
 });
 
 function getOAuthCredentials(): { clientId: string; clientSecret: string } {
-  const prefs = getPreferenceValues<{ clientId: string; clientSecret: string }>();
+  const prefs = getPreferenceValues<Preferences>();
   if (!prefs.clientId?.trim() || !prefs.clientSecret?.trim()) {
     throw new Error("Missing Client ID or Client Secret. Add them in Raycast Preferences.");
   }
